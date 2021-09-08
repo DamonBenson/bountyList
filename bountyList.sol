@@ -50,11 +50,11 @@ contract BountyList {
     }
     // tooltip //
     // 钱包转账
-    function MissionCheckOut(address payable hunter, address boss, uint amount) public {
+    function MissionCheckOut(address payable hunter, address boss, uint amount) private {
         require(msg.sender == boss);
         transferTo(hunter, amount);
     }
-    function transferTo(address payable dest, uint amount)  public {
+    function transferTo(address payable dest, uint amount)  private {
         dest.transfer(amount);
     }
 
@@ -134,19 +134,21 @@ contract BountyList {
     
     // 6 确认完成
     function confirmMission(uint MissionID) public returns(string memory, MissionDetail memory){
-        string memory msg = " ";
+        string memory message = " ";
         // 获取悬赏任务
         MissionDetail storage _MissionDetail = MissionDetailList[MissionID];
         // 确认发起人权限
         require(msg.sender == _MissionDetail.Boss && 3 == _MissionDetail.State);
         // 确认任务
         _MissionDetail.State = 4;
+        // 结算
+        MissionCheckOut(payable(_MissionDetail.Hunter), _MissionDetail.Boss, _MissionDetail.reward);
         // 更新进行任务的索引
         // TODO verify  地址传递与值传递
         removeMissionID(MissionID,bounties);
         // 结算
-        msg = "sucessfull";
-        return (msg,_MissionDetail);
+        message = "sucessfull";
+        return (message,_MissionDetail);
     }
     // 删除任务序号对应的任务
     function removeMissionID(uint MissionID,uint[] memory bounties) pure public returns (uint index){
@@ -165,7 +167,7 @@ contract BountyList {
     // HUNTER //
     // 9 领取任务（领取 触发）takeMission
     function takeMission(uint MissionID) public returns(string memory, MissionDetail memory){
-        string memory msg = " ";
+        string memory message = " ";
         // 获取悬赏任务
         MissionDetail storage _MissionDetail = MissionDetailList[MissionID];
         // 确认悬赏中
@@ -175,12 +177,12 @@ contract BountyList {
         // 更新进行任务的索引
         hunters[msg.sender].push(MissionID);
         // 结算
-        msg = "sucessfull";
-        return (msg,_MissionDetail);
+        message = "sucessfull";
+        return (message,_MissionDetail);
     }
     // 10 完成任务（完成 触发）completeMission
     function completeMission(uint MissionID, string memory Performance) public returns(string memory, MissionDetail memory){
-        string memory msg = " ";
+        string memory message = " ";
         // 获取悬赏任务
         MissionDetail storage _MissionDetail = MissionDetailList[MissionID];
         // 确认发起人权限
@@ -190,12 +192,12 @@ contract BountyList {
         // 上传证明材料的文字描述，如果是pdf需要附带链接
         _MissionDetail.Performance = Performance;
         // 结算
-        msg = "sucessfull";
-        return (msg,_MissionDetail);
+        message = "sucessfull";
+        return (message,_MissionDetail);
     }
     // 11 放弃任务 abandonMission
     function abandonMission(uint MissionID) public returns(string memory, MissionDetail memory){
-        string memory msg = " ";
+        string memory message = " ";
         // 获取悬赏任务
         MissionDetail storage _MissionDetail = MissionDetailList[MissionID];
         // 确认发起人权限
@@ -204,13 +206,13 @@ contract BountyList {
         _MissionDetail.State = 0;
         _MissionDetail.Hunter = NULLADDRESS;
         // 结算
-        msg = "sucessfull";
-        return (msg,_MissionDetail);
+        message = "sucessfull";
+        return (message,_MissionDetail);
     }
     // CHEIF //
     // 12 取消任务 killMission
     function killMission(uint MissionID) public returns(string memory, MissionDetail memory){
-        string memory msg = " ";
+        string memory message = " ";
         // 获取悬赏任务
         MissionDetail storage _MissionDetail = MissionDetailList[MissionID];
         // 确认发起人权限
@@ -221,8 +223,8 @@ contract BountyList {
         // TODO verify  地址传递与值传递
         removeMissionID(MissionID,bounties);
         // 结算
-        msg = "sucessfull";
-        return (msg,_MissionDetail);
+        message = "sucessfull";
+        return (message,_MissionDetail);
     }
     // // 安全通信设计
     // mapping(uint256 => bool) usedNonces;
