@@ -1,11 +1,29 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity >=0.7.0 <0.9.0;
 // 参考https://docs.soliditylang.org/en/latest/solidity-by-example.html#safe-remote-purchase
+// 已部署的DCT合约 
+abstract contract ERC20 {
+
+  function totalSupply() virtual external view returns (uint256);
+  function decimals() virtual external view returns (uint8);
+  function symbol() virtual external view returns (string memory);
+  function name() virtual external view returns (string memory);
+  function getOwner() virtual external view returns (address);
+  function balanceOf(address account) virtual external view returns (uint256);
+  function transfer(address recipient, uint256 amount) virtual external returns (bool);
+  function allowance(address _owner, address spender) virtual external view returns (uint256);
+  function approve(address spender, uint256 amount) virtual external returns (bool);
+  function transferFrom(address sender, address recipient, uint256 amount) virtual external returns (bool);
+
+}
+// 悬赏榜 
+// 作为后台
 contract BountyList {
     // 空账户 辅助任务初始化
     address constant NULLADDRESS = 0x0000000000000000000000000000000000000000;
     // 总账户
     address cheif = 0x8C6A98a1dF10C4b0E2f0728383caA6d2fbdFA764;//
+    
     // This declares a new complex type which will
     // be used for variables later.
     // It will represent a single voter.
@@ -32,18 +50,18 @@ contract BountyList {
     // 任务列表
     MissionDetail[] public MissionDetailList;
     // 进行任务的索引
-    uint[] private bounties;
+    uint[] public bounties;
     
     // 发起人的相关任务
     // typedef bounty int
     // This declares a state variable that
     // stores a `bosses` struct for each possible address.
-    mapping(address => uint[]) private bosses;
+    mapping(address => uint[]) public bosses;
 
     // 猎人的相关任务
     // This declares a state variable that
     // stores a `hunters` struct for each possible address.
-    mapping(address => uint[]) private hunters;
+    mapping(address => uint[]) public hunters;
 
     constructor() payable {
         
@@ -54,10 +72,16 @@ contract BountyList {
         require(msg.sender == boss);
         transferTo(hunter, amount);
     }
-    function transferTo(address payable dest, uint amount)  private {
-        dest.transfer(amount);
+    function transferTo(address payable recipient, uint amount)  private {
+        recipient.transfer(amount);
     }
 
+ 
+    function transferTo_DCT(address payable recipient, uint amount) private {
+        address ERC20addr = 0xc3e0ef1aa049c71c0c56736837b0373fd6cd737c;
+        ERC20 DCT = ERC20(ERC20addr);
+        DCT.transfer(recipient, amount);
+    }
     /**
     * Modifiers
     */
@@ -90,7 +114,12 @@ contract BountyList {
         MissionDetail[] memory MissionBrief;
         // 遍历正在进行任务的索引，返回正在进行的任务
         for(uint index = 0; index < bounties.length; index++){
+            // 过期的任务作废 暂不设置
+            // if(uint(MissionDetailList[bounties[index]].ddl) > block.timestamp){
+            // }
+            // 返回正在进行的任务
             MissionBrief[index] =  MissionDetailList[bounties[index]];
+
         }
         return MissionBrief;
     }
@@ -145,13 +174,13 @@ contract BountyList {
         MissionCheckOut(payable(_MissionDetail.Hunter), _MissionDetail.Boss, _MissionDetail.reward);
         // 更新进行任务的索引
         // TODO verify  地址传递与值传递
-        removeMissionID(MissionID,bounties);
+        removeMissionID(MissionID);
         // 结算
         message = "sucessfull";
         return (message,_MissionDetail);
     }
     // 删除任务序号对应的任务
-    function removeMissionID(uint MissionID,uint[] memory bounties) pure public returns (uint index){
+    function removeMissionID(uint MissionID) public returns (uint index){
         if (0 == bounties.length) return 0;
         uint i = 0;
         for (; i < bounties.length; i++) {
@@ -221,7 +250,7 @@ contract BountyList {
         _MissionDetail.State = 0;
         // 更新进行任务的索引
         // TODO verify  地址传递与值传递
-        removeMissionID(MissionID,bounties);
+        removeMissionID(MissionID);
         // 结算
         message = "sucessfull";
         return (message,_MissionDetail);
