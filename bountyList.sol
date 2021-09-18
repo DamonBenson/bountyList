@@ -43,17 +43,6 @@ contract BountyList {
     mapping(address => uint[]) public hunters;
 
     constructor() payable {
-        MissionDetail memory _MissionDetail = MissionDetail(1, msg.sender,"nothing", NULLADDRESS, "nothing", 1, block.timestamp, "", "", "");
-        // 更新悬赏榜
-        uint MissionID = MissionDetailList.length;// 任务列表的更新索引 加在队尾
-        emit BountyIssued(MissionID, msg.sender, 1, "nothing"); 
-
-        uint Bounty_Index = bounties.length;// 进行任务的索引的更新索引 加在队尾
-
-        MissionDetailList[MissionID] = _MissionDetail;// 任务列表
-        bounties[Bounty_Index] = MissionID;// 更新进行任务的索引
-        bosses[msg.sender].push(MissionID);// 更新发起人的相关任务
-        
     }
     // tooltip //
     // 钱包转账
@@ -124,11 +113,11 @@ contract BountyList {
         uint MissionID = MissionDetailList.length;// 任务列表的更新索引 加在队尾
         emit BountyIssued(MissionID, msg.sender, reward, Detail); 
 
-        uint Bounty_Index = bounties.length;// 进行任务的索引的更新索引 加在队尾
+        // uint Bounty_Index = bounties.length;// 进行任务的索引的更新索引 加在队尾
 
-        MissionDetailList[MissionID] = _MissionDetail;// 任务列表
-        bounties[Bounty_Index] = MissionID;// 更新进行任务的索引
-        bosses[msg.sender].push(MissionID);// 更新发起人的相关任务
+        MissionDetailList.push(_MissionDetail);// 任务列表
+        // bounties[Bounty_Index] = MissionID;// 更新进行任务的索引
+        // bosses[msg.sender].push(MissionID);// 更新发起人的相关任务
 
         return (MissionID, _MissionDetail);
     }
