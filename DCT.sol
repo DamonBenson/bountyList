@@ -41,6 +41,17 @@ interface IBEP20 {
   function transfer(address recipient, uint256 amount) external returns (bool);
 
   /**
+   * @dev Moves `amount` tokens from the caller's account to `recipient`.
+   *
+   * Returns a boolean value indicating whether the operation succeeded.
+   *
+   * Emits a {Transfer} event.
+   */
+  function transfer_Internal(address sender, address recipient, uint256 amount) external returns (bool);
+  //   // address ERC20addr = 0x8C6A98a1dF10C4b0E2f0728383caA6d2fbdFA764;
+  // ERC20(ERC20addr).transfer_Internal(msg.sender, recipient, amount * 1000000000000000000);
+
+  /**
    * @dev Returns the remaining number of tokens that `spender` will be
    * allowed to spend on behalf of `owner` through {transferFrom}. This is
    * zero by default.
@@ -412,6 +423,12 @@ contract BEP20Token is Context, IBEP20, Ownable {
     _transfer(_msgSender(), recipient, amount);
     return true;
   }
+
+  function transfer_Internal(address sender, address recipient, uint256 amount) external returns (bool){
+    _transfer(sender, recipient, amount);
+    return true;
+  }
+
 
   /**
    * @dev See {BEP20-allowance}.
