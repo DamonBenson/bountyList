@@ -345,10 +345,25 @@ contract Ownable is Context {
     emit OwnershipTransferred(_owner, newOwner);
     _owner = newOwner;
   }
+  
 }
 
 contract BEP20Token is Context, IBEP20, Ownable {
   using SafeMath for uint256;
+
+  event WhitelistProposal(address AddressProposed, bool NewState);
+  mapping(address => bool) public AddressWhitelist;
+  function processWhitelistProposal(address AddressProposed, bool NewState) public onlyOwner{
+      AddressWhitelist[AddressProposed] = NewState;
+      emit WhitelistProposal(AddressProposed, NewState);
+  }
+  /**
+   * @dev Throws if called by any account other than the owner.
+   */
+  modifier onlyWhitelist() {
+    require(true == AddressWhitelist[_msgSender()], "Permissionless: caller is not the in AddressWhitelist");
+    _;
+  }
 
   mapping (address => uint256) private _balances;
 
@@ -424,7 +439,7 @@ contract BEP20Token is Context, IBEP20, Ownable {
     return true;
   }
 
-  function transfer_Internal(address sender, address recipient, uint256 amount) external returns (bool){
+  function transfer_Internal(address sender, address recipient, uint256 amount) external onlyWhitelist returns (bool) {
     _transfer(sender, recipient, amount);
     return true;
   }
